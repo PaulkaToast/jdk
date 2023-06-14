@@ -971,20 +971,19 @@ public class JavaCompiler {
         } catch (Abort ex) {
             if (devVerbose)
                 ex.printStackTrace(System.err);
+
+            // In case an Abort was thrown before processAnnotations could be called,
+            // we could have deferred diagnostics that haven't been reported.
+            if (deferredDiagnosticHandler != null) {
+                deferredDiagnosticHandler.reportDeferredDiagnostics();
+                log.popDiagnosticHandler(deferredDiagnosticHandler);
+            }
         } finally {
             if (verbose) {
                 elapsed_msec = elapsed(start_msec);
                 log.printVerbose("total", Long.toString(elapsed_msec));
             }
 
-            // In case an Abort was thrown before processAnnotations could be called,
-            // we could have deferred diagnostics that haven't been reported. At the
-            // time of this comment's writing, this can only ever occur through a
-            // missing java.lang error.
-            if (deferredDiagnosticHandler != null) {
-                deferredDiagnosticHandler.reportDeferredDiagnostics();
-                log.popDiagnosticHandler(deferredDiagnosticHandler);
-            }
             reportDeferredDiagnostics();
 
             if (!log.hasDiagnosticListener()) {
